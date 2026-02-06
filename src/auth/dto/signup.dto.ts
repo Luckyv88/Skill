@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { IsNotEmpty, IsEmail, Length, Matches } from 'class-validator';
 
 export class SignUpDto {

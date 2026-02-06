@@ -1,10 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { Skill } from './skill.entity';
+import { SkillRequest } from './request.entity';
 
 @Entity('users')
 export class User {
@@ -31,4 +33,16 @@ export class User {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  // One user can have many skills
+  @OneToMany(() => Skill, (skill) => skill.user)
+  skills: Skill[];
+
+  // One user can send many requests
+  @OneToMany(() => SkillRequest, (req) => req.sender)
+  sentRequests: SkillRequest[];
+
+  // One user can receive many requests
+  @OneToMany(() => SkillRequest, (req) => req.receiver)
+  receivedRequests: SkillRequest[];
 }

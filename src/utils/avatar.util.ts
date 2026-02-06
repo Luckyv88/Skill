@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import multiavatar from '@multiavatar/multiavatar/esm';
 
 export function generateAvatar(username: string): string {
