@@ -6,13 +6,17 @@ export class Skill {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // Skills user HAS
-  @Column('jsonb', { default: [] })
-  haveSkills: { name: string; experience: number; projects: string }[];
+  @Column()
+  name: string;
 
-  // Skills user WANTS (only name)
-  @Column('simple-array', { default: '' })
-  wantSkills: string[];
+  @Column()
+  experience: number;
+
+  @Column({ nullable: true })
+  projects: string;
+
+  @Column()
+  type: 'HAVE' | 'WANT';
 
   // Many skills belong to one user
   @ManyToOne(() => User, (user) => user.skills)

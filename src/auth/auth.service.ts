@@ -51,12 +51,9 @@ export class AuthService {
   }
 
   private generateToken(userId: string) {
-    // Use 'sub' standard claim
-    const token = jwt.sign(
-      { sub: userId }, // changed from { userId }
-      process.env.JWT_SECRET_KEY as string,
-      { expiresIn: '7d' },
-    );
+    const token = jwt.sign({ userId }, process.env.JWT_SECRET_KEY as string, {
+      expiresIn: '7d',
+    });
     return token;
   }
 }
