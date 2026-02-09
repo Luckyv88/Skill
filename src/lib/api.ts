@@ -1,25 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
-export async function apiRequest(
-  endpoint: string,
-  method: string,
-  body?: any
-) {
-  const response = await fetch(`${API_URL}${endpoint}`, {
+export default async function apiRequest(url: string, method: string, body?: any) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
     method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include", // IMPORTANT for cookies
+    headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
+    credentials: 'include',
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Something went wrong");
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'API request failed');
   }
 
-  return data;
+  return res.json();
 }

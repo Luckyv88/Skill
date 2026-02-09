@@ -3,13 +3,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiRequest } from "@/lib/api";
+import api from "@/lib/api";
 import "./register.css";
+
+interface RegisterForm {
+  fullname: string;
+  username: string;
+  email: string;
+  phone: string;
+  password: string;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<RegisterForm>({
     fullname: "",
     username: "",
     email: "",
@@ -28,11 +36,12 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      await apiRequest("/auth/signup", "POST", form);
+      await api.post("/auth/signup", form);
+
       alert("Registration successful. Please login.");
       router.push("/login");
     } catch (err: any) {
-      setError(err.message);
+      setError(err.response?.data?.message || "Something went wrong");
     }
   };
 
