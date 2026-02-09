@@ -1,19 +1,34 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Controller, Post, Body, Req, Get } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Controller, Post, Body, UseGuards, Req, Get } from '@nestjs/common';
 import { SkillsService } from './skills.service';
+import { AddSkillDto } from './dto/add-skill.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('skills')
 export class SkillsController {
-  constructor(private service: SkillsService) {}
+  constructor(private readonly skillsService: SkillsService) {}
 
+  @UseGuards(AuthGuard('jwt'))
   @Post('add')
-  add(@Req() req: any, @Body() body: any) {
-    return this.service.addSkill(req.user.userId, body);
+  async addSkill(@Req() req: any, @Body() dto: AddSkillDto) {
+    const userId = req.user.userId; // comes from JwtStrategy.validate()
+    return this.skillsService.addSkill(userId, dto);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('matches')
-  matches(@Req() req: any) {
-    return this.service.findMatches(req.user.userId);
+  async findMatches(@Req() req: any) {
+    const userId = req.user.userId;
+    return this.skillsService.findMatches(userId);
+  }
+
+  // src/skills/skills.controller.ts
+  @UseGuards(AuthGuard('jwt'))
+  @Get('all')
+  async getAllSkills(@Req() req: any) {
+    return this.skillsService.getAllSkills();
   }
 }
