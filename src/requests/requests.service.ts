@@ -43,4 +43,12 @@ export class RequestsService {
       relations: ['sender', 'receiver'],
     });
   }
+
+  // Get all requests for logged-in user (sent + received)
+  async findAll(userId: string) {
+    return this.reqRepo.find({
+      where: [{ sender: { id: userId } }, { receiver: { id: userId } }],
+      relations: ['sender', 'receiver'],
+    });
+  }
 }

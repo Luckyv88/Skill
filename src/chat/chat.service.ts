@@ -14,6 +14,7 @@ export class ChatService {
     @InjectRepository(SkillRequest) private reqRepo: Repository<SkillRequest>,
   ) {}
 
+  // 🔒 Send message (ONLY if accepted)
   async sendMessage(senderId: string, dto: SendMessageDto) {
     const sender = await this.userRepo.findOne({ where: { id: senderId } });
     const receiver = await this.userRepo.findOne({
@@ -41,8 +42,8 @@ export class ChatService {
     if (!accepted) throw new Error('You are not connected with this user');
 
     const chat = this.chatRepo.create({
-      sender: sender,
-      receiver: receiver,
+      sender,
+      receiver,
       message: dto.message,
       fileUrl: dto.fileUrl,
     });
@@ -50,7 +51,25 @@ export class ChatService {
     return this.chatRepo.save(chat);
   }
 
+  // 🔒 Get chat history (ONLY if accepted)
   async getChatHistory(userId: string, friendId: string) {
+    const accepted = await this.reqRepo.findOne({
+      where: [
+        {
+          sender: { id: userId },
+          receiver: { id: friendId },
+          status: 'ACCEPTED',
+        },
+        {
+          sender: { id: friendId },
+          receiver: { id: userId },
+          status: 'ACCEPTED',
+        },
+      ],
+    });
+
+    if (!accepted) throw new Error('You are not connected with this user');
+
     return this.chatRepo.find({
       where: [
         { sender: { id: userId }, receiver: { id: friendId } },
@@ -61,6 +80,7 @@ export class ChatService {
     });
   }
 
+  // ✅ Friends list (accepted only)
   async getFriendsList(userId: string) {
     const acceptedRequests = await this.reqRepo.find({
       where: [
@@ -74,7 +94,6 @@ export class ChatService {
       req.sender.id === userId ? req.receiver : req.sender,
     );
 
-    // Remove duplicates
     const unique = friends.filter(
       (v, i, a) => a.findIndex((u) => u.id === v.id) === i,
     );

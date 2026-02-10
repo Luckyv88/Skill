@@ -1,5 +1,9 @@
-import { Controller, Post, Body, Res } from '@nestjs/common';
-import type { Response } from 'express';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { Controller, Post, Body, Res, Get, Req } from '@nestjs/common';
+import type { Response, Request } from 'express';
+import * as jwt from 'jsonwebtoken';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/signup.dto';
 import { loginDto } from './dto/login.dto';
@@ -40,5 +44,23 @@ export class AuthController {
   logout(@Res() res: Response) {
     res.clearCookie('jwt');
     return res.json({ success: true });
+  }
+
+  @Get('me')
+  me(@Req() req: Request) {
+    const token = req.cookies?.jwt;
+
+    if (!token) return null;
+
+    try {
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET_KEY as string,
+      ) as any;
+
+      return { id: decoded.sub };
+    } catch {
+      return null;
+    }
   }
 }

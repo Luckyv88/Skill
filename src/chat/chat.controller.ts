@@ -1,9 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Controller, Post, Body, Req, Get, Param } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  Get,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { SendMessageDto } from './dto/send-message.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('chat')
 export class ChatController {
   constructor(private service: ChatService) {}
