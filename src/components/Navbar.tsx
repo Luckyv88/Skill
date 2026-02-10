@@ -13,6 +13,7 @@ export default function Navbar() {
         <Link href="/matches">Matches</Link>
         <Link href="/add-skill">Add Skill</Link>
         <Link href="/chat">Chat</Link>
+        <Link href="/requests">Requests</Link>
       </div>
     </nav>
   );

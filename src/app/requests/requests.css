@@ -1,0 +1,53 @@
+.page-container {
+  padding: 30px;
+  min-height: 100vh;
+  background-color: #f4f6f9;
+}
+
+.page-container h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.error {
+  color: red;
+  margin-bottom: 15px;
+}
+
+.request-card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: 0.2s ease;
+}
+
+.request-card:hover {
+  transform: translateY(-2px);
+}
+
+.request-card p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.request-card button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.request-card button:hover {
+  opacity: 0.9;
+}
+
+.request-card button:last-child {
+  background-color: #f44336;
+}

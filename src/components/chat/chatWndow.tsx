@@ -1,91 +1,98 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSocket } from "@/./src/lib/socket";
-import "./ChatWindow.css";
+import { getSocket } from "@/src/lib/socket";
+import "./chatWindow.css";
 
-interface Props {
-  userId: string;
-  friendId: string;
-}
-
-export default function ChatWindow({ userId, friendId }: Props) {
+export default function ChatWindow({ friend, userId }: any) {
   const [messages, setMessages] = useState<any[]>([]);
-  const [text, setText] = useState("");
-  const [typing, setTyping] = useState(false);
-  const socket = getSocket();
+  const [message, setMessage] = useState("");
 
+  //  Fetch chat history when friend changes
   useEffect(() => {
-    socket.emit("register", userId);
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/chat/history/${friend.id}`,
+      { credentials: "include" }
+    )
+      .then(res => res.json())
+      .then(data => setMessages(data));
+  }, [friend]);
 
-    socket.on("receiveMessage", (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    });
+  //  Listen for live messages
+  useEffect(() => {
+    const socket = getSocket();
 
-    socket.on("typing", (from) => {
-      if (from === friendId) setTyping(true);
-      setTimeout(() => setTyping(false), 2000);
-    });
+    const handleMessage = (data: any) => {
+      // Only add message if it belongs to this chat
+      if (
+        data.sender.id === friend.id ||
+        data.receiver.id === friend.id
+      ) {
+        setMessages(prev => [...prev, data]);
+      }
+    };
 
-    socket.on("userOnline", (id) => {
-      console.log(id, "is online");
-    });
+    socket.on("receiveMessage", handleMessage);
 
     return () => {
-      socket.off("receiveMessage");
-      socket.off("typing");
-      socket.off("userOnline");
+      socket.off("receiveMessage", handleMessage);
     };
-  }, [friendId, userId]);
+  }, [friend]);
 
+  //  Send message
   const sendMessage = () => {
-    if (!text.trim()) return;
+    if (!message.trim()) return;
+
+    const socket = getSocket();
 
     socket.emit("sendMessage", {
-      senderId: userId,
-      receiverId: friendId,
-      message: text,
+      receiverId: friend.id,
+      message,
     });
 
-    setMessages((prev) => [
-      ...prev,
-      { sender: { id: userId }, message: text },
-    ]);
-
-    setText("");
+    setMessage("");
   };
 
-  const handleTyping = () => {
-    socket.emit("typing", {
-      to: friendId,
-      from: userId,
+  // Call user
+  const callUser = (type: "video" | "audio") => {
+    const socket = getSocket();
+
+    socket.emit("callUser", {
+      to: friend.id,
+      signal: { type },
     });
   };
 
   return (
-    <div className="chat-container">
-      <div className="messages">
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={
-              m.sender.id === userId ? "my-message" : "friend-message"
-            }
-          >
-            {m.message}
-          </div>
-        ))}
-        {typing && <div className="typing">Typing...</div>}
+    <div className="chat-window">
+      <div className="chat-header">
+        <h3>{friend.username}</h3>
+        <div>
+          <button onClick={() => callUser("audio")}>Audio</button>
+          <button onClick={() => callUser("video")}>Video</button>
+        </div>
       </div>
 
-      <div className="input-area">
+      <div className="chat-messages">
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={
+              msg.sender.id === userId
+                ? "my-message"
+                : "friend-message"
+            }
+          >
+            {msg.message}
+          </div>
+        ))}
+      </div>
+
+      <div className="chat-input">
         <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={handleTyping}
-          placeholder="Type a message..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
         />
         <button onClick={sendMessage}>Send</button>
       </div>

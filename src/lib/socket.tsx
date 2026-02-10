@@ -1,14 +1,26 @@
-"use client";
-
 import { io, Socket } from "socket.io-client";
+
+const PRIMARY_URL = process.env.NEXT_PUBLIC_API_URL!;
+const FALLBACK_URL = "http://localhost:4001";
 
 let socket: Socket | null = null;
 
 export const getSocket = (): Socket => {
   if (!socket) {
-    socket = io(process.env.NEXT_PUBLIC_API_URL!, {
-      transports: ["websocket"],
+    socket = io(PRIMARY_URL, {
+      autoConnect: false,
       withCredentials: true,
+    });
+
+    socket.on("connect_error", () => {
+      console.log("Primary failed. Trying fallback...");
+
+      socket?.disconnect();
+
+      socket = io(FALLBACK_URL, {
+        autoConnect: true,
+        withCredentials: true,
+      });
     });
   }
 
