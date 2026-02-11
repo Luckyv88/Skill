@@ -8,11 +8,12 @@ let socket: Socket | null = null;
 export const getSocket = (): Socket => {
   if (!socket) {
     socket = io(PRIMARY_URL, {
-      autoConnect: false,
+      autoConnect: false, // we will connect manually in component
       withCredentials: true,
     });
 
-    socket.on("connect_error", () => {
+    // Only attach this listener once
+    socket.once("connect_error", () => {
       console.log("Primary failed. Trying fallback...");
 
       socket?.disconnect();

@@ -3,44 +3,76 @@
 
 import { useEffect, useState } from "react";
 import { getSocket } from "@/src/lib/socket";
+import { useRouter } from "next/navigation";
 import "./chatWindow.css";
 
-export default function ChatWindow({ friend, userId }: any) {
+export default function ChatWindow({
+  friend,
+  userId,
+  incomingCall,
+  setIncomingCall,
+}: any) {
   const [messages, setMessages] = useState<any[]>([]);
   const [message, setMessage] = useState("");
+  const router = useRouter();
 
-  //  Fetch chat history when friend changes
+  // Fetch chat history when friend changes
   useEffect(() => {
-    fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/chat/history/${friend.id}`,
-      { credentials: "include" }
-    )
-      .then(res => res.json())
-      .then(data => setMessages(data));
+    if (!friend?.id) return;
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/history/${friend.id}`, {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => setMessages(data));
   }, [friend]);
 
-  //  Listen for live messages
+  // Listen for live messages & calls
   useEffect(() => {
+    if (!friend?.id) return;
+
     const socket = getSocket();
 
     const handleMessage = (data: any) => {
-      // Only add message if it belongs to this chat
-      if (
-        data.sender.id === friend.id ||
-        data.receiver.id === friend.id
-      ) {
-        setMessages(prev => [...prev, data]);
+      if (data.sender.id === friend.id || data.receiver.id === friend.id) {
+        setMessages((prev) => [...prev, data]);
       }
     };
 
+    const handleUserBusy = () => {
+      alert("User is Busy");
+    };
+
+    const handleCallRejected = () => {
+      alert("Call Rejected");
+    };
+
+    const handleCallAccepted = (data: any) => {
+      router.push(
+        `/call?type=${data.signal?.type || "video"}&friendId=${friend.id}&mode=caller`
+      );
+    };
+
+    const handleCallEnded = () => {
+      alert("Call Ended");
+    };
+
     socket.on("receiveMessage", handleMessage);
+    socket.on("userBusy", handleUserBusy);
+    socket.on("callRejected", handleCallRejected);
+    socket.on("callAccepted", handleCallAccepted);
+    socket.on("callEnded", handleCallEnded);
 
     return () => {
       socket.off("receiveMessage", handleMessage);
+      socket.off("userBusy", handleUserBusy);
+      socket.off("callRejected", handleCallRejected);
+      socket.off("callAccepted", handleCallAccepted);
+      socket.off("callEnded", handleCallEnded);
     };
   }, [friend]);
 
-  //  Send message
+  // Send message
   const sendMessage = () => {
     if (!message.trim()) return;
 
@@ -64,6 +96,42 @@ export default function ChatWindow({ friend, userId }: any) {
     });
   };
 
+  // Accept call
+  const acceptCall = () => {
+    const socket = getSocket();
+
+    socket.emit("answerCall", {
+      to: incomingCall.from,
+      signal: { type: incomingCall.signal.type },
+    });
+
+    setIncomingCall(null);
+
+    router.push(
+      `/call?type=${incomingCall.signal.type}&friendId=${incomingCall.from}&mode=receiver`
+    );
+  };
+
+  // Reject call
+  const rejectCall = () => {
+    const socket = getSocket();
+
+    socket.emit("rejectCall", {
+      to: incomingCall.from,
+    });
+
+    setIncomingCall(null);
+  };
+
+  // End call (optional)
+  const endCall = () => {
+    const socket = getSocket();
+
+    socket.emit("endCall", {
+      to: friend.id,
+    });
+  };
+
   return (
     <div className="chat-window">
       <div className="chat-header">
@@ -78,21 +146,26 @@ export default function ChatWindow({ friend, userId }: any) {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={
-              msg.sender.id === userId
-                ? "my-message"
-                : "friend-message"
-            }
+            className={msg.sender.id === userId ? "my-message" : "friend-message"}
           >
             {msg.message}
           </div>
         ))}
       </div>
 
+      {incomingCall && incomingCall.from === friend.id && (
+        <div className="call-popup">
+          <p>Incoming {incomingCall.signal.type} Call</p>
+          <button onClick={acceptCall}>Accept</button>
+          <button onClick={rejectCall}>Reject</button>
+        </div>
+      )}
+
       <div className="chat-input">
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          placeholder="Type a message..."
         />
         <button onClick={sendMessage}>Send</button>
       </div>

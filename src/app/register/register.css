@@ -3,15 +3,16 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f2f2f2;
+  background: #e6f0fa; /* same sky background */
 }
 
 .register-card {
-  background: white;
+  background: #ffffff; /* white card like login */
   padding: 40px;
   width: 400px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid #d9e3f0;
   display: flex;
   flex-direction: column;
 }
@@ -19,42 +20,46 @@
 .register-card h2 {
   text-align: center;
   margin-bottom: 20px;
+  color: #2c3e50; /* soft dark blue */
+  font-weight: 600;
 }
 
 .register-card input {
   margin-bottom: 15px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 12px 14px;
+  border: 1px solid #bcd6f2;
+  border-radius: 25px;
   font-size: 14px;
+  background-color: #ffffff;
+  transition: all 0.2s ease;
 }
 
 .register-card input:focus {
   outline: none;
-  border: 1px solid #000;
+  border-color: #66c0ff;
+  box-shadow: 0 0 6px rgba(102, 192, 255, 0.4);
 }
 
 .register-card button {
-  padding: 10px;
+  padding: 12px;
   border: none;
-  border-radius: 6px;
-  background: black;
+  border-radius: 25px;
+  background: #66c0ff; /* same blue as login */
   color: white;
-  font-weight: bold;
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.3s;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Sunlight hover effect */
 .register-card button:hover {
-  background: #222;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+  background: #3399ff;
   transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .error {
-  color: red;
+  color: #d9534f;
   font-size: 13px;
   text-align: center;
 }
@@ -63,9 +68,16 @@
   margin-top: 15px;
   text-align: center;
   font-size: 14px;
+  color: #4a5a6a;
 }
 
 .redirect span {
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 600;
+  color: #3399ff;
+  transition: 0.2s;
+}
+
+.redirect span:hover {
+  text-decoration: underline;
 }

@@ -10,36 +10,57 @@ import "./chat.css";
 export default function ChatPage() {
   const [activeFriend, setActiveFriend] = useState<any>(null);
   const [userId, setUserId] = useState<string>("");
+  const [incomingCall, setIncomingCall] = useState<any>(null); // <-- persistent incoming call
 
   useEffect(() => {
     const socket = getSocket();
 
-    socket.connect();
+    if (!socket.connected) {
+      socket.connect(); // connect once
+    }
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
       credentials: "include",
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setUserId(data.id);
 
-        // register AFTER connection
-        socket.emit("register", data.id);
+        socket.on("connect", () => {
+          socket.emit("register", data.id);
+        });
+
+        if (socket.connected) {
+          socket.emit("register", data.id);
+        }
       });
 
+    // Listen for incoming calls at parent level
+    const handleIncomingCall = (data: any) => {
+      setIncomingCall(data);
+    };
+
+    socket.on("incomingCall", handleIncomingCall);
+
     return () => {
-      socket.off();
+      socket.off("connect");
+      socket.off("incomingCall", handleIncomingCall);
     };
   }, []);
 
   return (
     <div className="chat-container">
-      <FriendsList onSelect={setActiveFriend} />
+      <FriendsList
+        onSelect={setActiveFriend}
+        incomingCall={incomingCall} // pass down for ringing indicator
+      />
 
       {activeFriend && (
         <ChatWindow
           friend={activeFriend}
           userId={userId}
+          incomingCall={incomingCall} // pass down
+          setIncomingCall={setIncomingCall} // allow clearing
         />
       )}
     </div>

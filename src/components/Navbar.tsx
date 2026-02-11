@@ -14,6 +14,7 @@ export default function Navbar() {
         <Link href="/add-skill">Add Skill</Link>
         <Link href="/chat">Chat</Link>
         <Link href="/requests">Requests</Link>
+        <Link href="/remove-friend">Remove Friend</Link>
       </div>
     </nav>
   );
