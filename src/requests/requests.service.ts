@@ -51,4 +51,15 @@ export class RequestsService {
       relations: ['sender', 'receiver'],
     });
   }
+
+  // requests.service.ts (add this method only)
+  async removeFriend(userId: string, friendId: string) {
+    // Delete requests where user is sender or receiver with friend
+    await this.reqRepo.delete([
+      { sender: { id: userId }, receiver: { id: friendId } },
+      { sender: { id: friendId }, receiver: { id: userId } },
+    ]);
+
+    return { success: true, message: 'Friend removed' };
+  }
 }

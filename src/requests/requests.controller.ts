@@ -1,6 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Controller, Post, Param, Req, Get, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Param,
+  Req,
+  Get,
+  UseGuards,
+  Delete,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestsService } from './requests.service';
 
@@ -27,5 +36,11 @@ export class RequestsController {
   @Post('reject/:id')
   reject(@Param('id') id: string) {
     return this.service.respond(id, 'REJECTED');
+  }
+  @Post('remove/:id')
+  removeFriend(@Req() req: any, @Param('id') id: string) {
+    // Remove friend by deleting the request
+    // It will remove the request in any status (ACCEPTED or PENDING)
+    return this.service.removeFriend(req.user.userId, id);
   }
 }

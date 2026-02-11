@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -24,6 +23,7 @@ export class ChatGateway {
   server: Server;
 
   private onlineUsers: Map<string, string> = new Map();
+  private usersInCall: Set<string> = new Set();
 
   constructor(private chatService: ChatService) {}
 
@@ -67,11 +67,23 @@ export class ChatGateway {
     @MessageBody() data: { to: string; signal: any },
     @ConnectedSocket() client: Socket,
   ) {
+    const callerId = client.data.userId;
     const receiverSocket = this.onlineUsers.get(data.to);
+
+    // If receiver already in call
+    if (this.usersInCall.has(data.to)) {
+      this.server.to(client.id).emit('userBusy');
+      return;
+    }
+
     if (receiverSocket) {
+      // mark both as in call
+      this.usersInCall.add(callerId);
+      this.usersInCall.add(data.to);
+
       this.server.to(receiverSocket).emit('incomingCall', {
         signal: data.signal,
-        from: client.data.userId,
+        from: callerId,
       });
     }
   }
@@ -82,8 +94,41 @@ export class ChatGateway {
     @ConnectedSocket() client: Socket,
   ) {
     const callerSocket = this.onlineUsers.get(data.to);
+
     if (callerSocket) {
-      this.server.to(callerSocket).emit('callAccepted', data.signal);
+      this.server.to(callerSocket).emit('callAccepted', {
+        signal: data.signal,
+        from: client.data.userId,
+      });
     }
+  }
+
+  @SubscribeMessage('rejectCall')
+  rejectCall(
+    @MessageBody() data: { to: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const callerSocket = this.onlineUsers.get(data.to);
+
+    if (callerSocket) {
+      this.server.to(callerSocket).emit('callRejected');
+    }
+
+    this.usersInCall.delete(data.to);
+    this.usersInCall.delete(client.data.userId);
+  }
+  @SubscribeMessage('endCall')
+  endCall(
+    @MessageBody() data: { to: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const otherSocket = this.onlineUsers.get(data.to);
+
+    if (otherSocket) {
+      this.server.to(otherSocket).emit('callEnded');
+    }
+
+    this.usersInCall.delete(data.to);
+    this.usersInCall.delete(client.data.userId);
   }
 }
