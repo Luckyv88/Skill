@@ -14,7 +14,11 @@ import { SendMessageDto } from './dto/send-message.dto';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:3001'], // Adjust as needed
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://skill-swap-o8x6.onrender.com',
+    ], // Adjust as needed
     credentials: true,
   },
 })
