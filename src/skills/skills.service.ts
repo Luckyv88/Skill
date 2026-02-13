@@ -26,6 +26,25 @@ export class SkillsService {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new Error('User not found');
 
+    // Check duplicate WANT skill (case-insensitive + trimmed)
+    const formattedWant = (dto.wantSkills?.[0] || '')
+      .toLowerCase()
+      .replace(/\s+/g, '');
+
+    const existingSkills = await this.skillRepo.find({
+      where: { user: { id: userId } },
+    });
+
+    const duplicate = existingSkills.some((skill) =>
+      skill.wantSkills.some(
+        (w) => w.toLowerCase().replace(/\s+/g, '') === formattedWant,
+      ),
+    );
+
+    if (duplicate) {
+      throw new Error('Skill already added in Want section');
+    }
+
     const skill = this.skillRepo.create({
       haveSkills: dto.haveSkills || [],
       wantSkills: dto.wantSkills || [],
