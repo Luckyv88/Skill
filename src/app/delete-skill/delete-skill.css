@@ -1,0 +1,44 @@
+.page-container {
+  padding: 30px;
+}
+
+.skill-card {
+  background: #ffffff; /* changed to white */
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.skill-card:hover {
+  transform: scale(1.03); /* comes slightly toward screen */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+
+.skill-card h3 {
+  margin-top: 10px;
+  color: #000000; /* black */
+}
+
+.skill-card p {
+  margin: 5px 0;
+  color: #000000; /* black */
+}
+
+
+.delete-btn {
+  margin-top: 15px;
+  padding: 8px 15px;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+
+
+.error {
+  color: red;
+}

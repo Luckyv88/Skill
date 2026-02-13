@@ -10,7 +10,10 @@ export default function AddSkillPage() {
   ]);
   const [wantSkills, setWantSkills] = useState([""]);
 
-  const handleHaveChange = (field: keyof typeof haveSkills[0], value: string | number) => {
+  const handleHaveChange = (
+    field: keyof typeof haveSkills[0],
+    value: string | number
+  ) => {
     const updated = [...haveSkills];
     (updated[0][field] as any) = value;
     setHaveSkills(updated);
@@ -22,6 +25,21 @@ export default function AddSkillPage() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+
+    // ✅ Check duplicate in wantSkills (case insensitive + trim)
+    const formattedWant = wantSkills[0].toLowerCase().trim();
+
+    if (
+      formattedWant &&
+      wantSkills.filter(
+        (skill) =>
+          skill.toLowerCase().trim() === formattedWant
+      ).length > 1
+    ) {
+      alert("Skill already added in Want section");
+      return;
+    }
+
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/skills/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

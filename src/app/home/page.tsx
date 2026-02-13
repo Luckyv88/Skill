@@ -8,7 +8,7 @@ export default function HomePage() {
   const [skills, setSkills] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/skills/all`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/skills/all-users`, {
       credentials: "include",
     })
       .then(res => res.json())

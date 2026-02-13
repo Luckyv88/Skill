@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -123,14 +124,7 @@ export default function ChatWindow({
     setIncomingCall(null);
   };
 
-  // End call (optional)
-  const endCall = () => {
-    const socket = getSocket();
-
-    socket.emit("endCall", {
-      to: friend.id,
-    });
-  };
+ 
 
   return (
     <div className="chat-window">

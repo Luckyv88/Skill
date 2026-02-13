@@ -7,69 +7,97 @@ import "./requests.css";
 export default function RequestsPage() {
   const [requests, setRequests] = useState<any[]>([]);
   const [error, setError] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string>("");
 
+  //  Get logged-in user properly
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
+          {
+            credentials: "include",
+          }
+        );
+
+        if (!res.ok) return;
+
+        const user = await res.json();
+        setCurrentUserId(user.id);
+      } catch (err) {
+        console.error("User fetch error:", err);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  //  Fetch all requests
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests`, {
       credentials: "include",
     })
-      .then(res => res.json())
-      .then(data => {
-        console.log("All Requests:", data);
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to fetch requests");
+        }
+        return data;
+      })
+      .then((data) => {
         setRequests(Array.isArray(data) ? data : []);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Fetch error:", err);
-        setError("Failed to load requests");
+        setError(err.message || "Failed to load requests");
         setRequests([]);
       });
   }, []);
 
   const handleAccept = async (id: string) => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/requests/accept/${id}`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/requests/accept/${id}`,
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
 
-      const data = await res.json();
-      console.log("Accept response:", data);
+    const data = await res.json();
 
-      setRequests(prev =>
-        prev.map(r =>
-          r.id === id ? { ...r, status: "ACCEPTED" } : r
-        )
-      );
-    } catch (err: any) {
-      console.error("Accept error:", err);
-      alert("Failed to accept request");
+    if (!res.ok) {
+      alert(data.message || "Failed to accept request");
+      return;
     }
+
+    setRequests((prev) =>
+      prev.map((r) =>
+        r.id === id ? { ...r, status: "ACCEPTED" } : r
+      )
+    );
   };
 
   const handleReject = async (id: string) => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/requests/reject/${id}`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/requests/reject/${id}`,
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
 
-      const data = await res.json();
-      console.log("Reject response:", data);
+    const data = await res.json();
 
-      setRequests(prev =>
-        prev.map(r =>
-          r.id === id ? { ...r, status: "REJECTED" } : r
-        )
-      );
-    } catch (err: any) {
-      console.error("Reject error:", err);
-      alert("Failed to reject request");
+    if (!res.ok) {
+      alert(data.message || "Failed to reject request");
+      return;
     }
+
+    setRequests((prev) =>
+      prev.map((r) =>
+        r.id === id ? { ...r, status: "REJECTED" } : r
+      )
+    );
   };
 
   return (
@@ -82,40 +110,74 @@ export default function RequestsPage() {
         <p>No requests found.</p>
       )}
 
-      {requests.map((req, i) => (
-        <div key={i} className="request-card">
-          <p>
-            From: <strong>{req.sender?.username}</strong>
-          </p>
+      {requests.map((req) => {
+        const isReceiver = req.receiver?.id === currentUserId;
+        const isSender = req.sender?.id === currentUserId;
 
-          <p>Status: {req.status}</p>
+        return (
+          <div key={req.id} className="request-card">
+            {/*  Show correct name */}
+            {isReceiver && (
+              <p>
+                From: <strong>{req.sender?.username}</strong>
+              </p>
+            )}
 
-          {req.status === "PENDING" && (
-            <div style={{ marginTop: "10px" }}>
-              <button
-                onClick={() => handleAccept(req.id)}
-                style={{
-                  marginRight: "10px",
-                  padding: "5px 10px",
-                  cursor: "pointer",
-                }}
-              >
-                Accept
-              </button>
+            {isSender && (
+              <p>
+                To: <strong>{req.receiver?.username}</strong>
+              </p>
+            )}
 
-              <button
-                onClick={() => handleReject(req.id)}
-                style={{
-                  padding: "5px 10px",
-                  cursor: "pointer",
-                }}
-              >
-                Reject
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
+            <p>Status: {req.status}</p>
+
+            {/*  Only receiver can accept/reject */}
+            {req.status === "PENDING" && isReceiver && (
+              <div style={{ marginTop: "10px" }}>
+                <button
+                  onClick={() => handleAccept(req.id)}
+                  style={{
+                    marginRight: "10px",
+                    padding: "5px 10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Accept
+                </button>
+
+                <button
+                  onClick={() => handleReject(req.id)}
+                  style={{
+                    padding: "5px 10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Reject
+                </button>
+              </div>
+            )}
+
+            {/*  If sender is waiting */}
+            {req.status === "PENDING" && isSender && (
+              <p style={{ marginTop: "10px", color: "orange" }}>
+                Pending (Waiting for response)
+              </p>
+            )}
+
+            {req.status === "ACCEPTED" && (
+              <p style={{ marginTop: "10px", color: "green" }}>
+                Friends
+              </p>
+            )}
+
+            {req.status === "REJECTED" && (
+              <p style={{ marginTop: "10px", color: "red" }}>
+                Rejected
+              </p>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

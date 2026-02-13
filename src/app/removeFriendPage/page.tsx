@@ -6,20 +6,65 @@ import "./removeFriend.css";
 
 export default function RemoveFriendPage() {
   const [friends, setFriends] = useState<any[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
 
+  // Fetch logged-in user
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
+          { credentials: "include" }
+        );
+
+        if (!res.ok) return;
+
+        const user = await res.json();
+        setCurrentUserId(user.id);
+      } catch (err) {
+        console.error("User fetch error:", err);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  // 🔹 Fetch accepted friends
   const fetchFriends = () => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/accepted`, {
       credentials: "include",
     })
-      .then((res) => res.json())
-      .then((data) => setFriends(data))
-      .catch((err) => console.error(err));
+      .then(async (res) => {
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to fetch friends");
+        }
+
+        return data;
+      })
+      .then((data) => {
+        console.log("Accepted API response:", data);
+
+        if (Array.isArray(data)) {
+          setFriends(data);
+        } else if (Array.isArray(data.data)) {
+          setFriends(data.data);
+        } else {
+          setFriends([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Fetch friends error:", err);
+        setFriends([]);
+      });
   };
 
   useEffect(() => {
     fetchFriends();
   }, []);
 
+  // 🔹 Remove friend
   const removeFriend = (friendId: string) => {
     if (!confirm("Are you sure you want to remove this friend?")) return;
 
@@ -27,28 +72,54 @@ export default function RemoveFriendPage() {
       method: "POST",
       credentials: "include",
     })
-      .then((res) => res.json())
-      .then(() => {
-        // remove from state
-        setFriends(friends.filter(f => f.sender.id !== friendId && f.receiver.id !== friendId));
+      .then(async (res) => {
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to remove friend");
+        }
+
+        return data;
       })
-      .catch((err) => console.error(err));
+      .then(() => {
+        // safer state update
+        setFriends((prev) =>
+          prev.filter(
+            (f) =>
+              f.sender.id !== friendId &&
+              f.receiver.id !== friendId
+          )
+        );
+      })
+      .catch((err) => console.error("Remove error:", err));
   };
 
   return (
     <div className="remove-friend-container">
       <h2>Friends List</h2>
+
       {friends.length === 0 && <p>No friends found</p>}
+
       <ul className="friends-list">
-        {friends.map((f) => {
-          const friend = f.sender.id === f.userId ? f.receiver : f.sender;
-          return (
-            <li key={friend.id} className="friend-item">
-              <span>{friend.username}</span>
-              <button onClick={() => removeFriend(friend.id)}>Remove</button>
-            </li>
-          );
-        })}
+        {Array.isArray(friends) &&
+          friends.map((f) => {
+            //Correct friend logic
+            const friend =
+              f.sender.id === currentUserId
+                ? f.receiver
+                : f.sender;
+
+            return (
+              <li key={friend.id} className="friend-item">
+                <span>{friend.username}</span>
+                <button
+                  onClick={() => removeFriend(friend.id)}
+                >
+                  Remove
+                </button>
+              </li>
+            );
+          })}
       </ul>
     </div>
   );
