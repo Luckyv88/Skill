@@ -2,12 +2,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getSocket } from "@/src/lib/socket";
 
 export default function FriendsList({ onSelect }: any) {
   const [friends, setFriends] = useState<any[]>([]);
   const [ringingUser, setRingingUser] = useState<string | null>(null);
-
+  const router = useRouter();
   // Fetch friends
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/friends`, {
@@ -34,6 +35,18 @@ export default function FriendsList({ onSelect }: any) {
 
   return (
     <div className="friends-list">
+      <button
+  type="button"
+  onClick={() => router.back()}
+  style={{
+    marginBottom: "10px",
+    padding: "6px 12px",
+    cursor: "pointer",
+  }}
+>
+  ← Back
+</button>
+
       <h3>Friends</h3>
       {friends.map((friend) => (
         <div

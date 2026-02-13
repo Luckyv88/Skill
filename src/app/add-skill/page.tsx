@@ -2,9 +2,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 import "./add-skill.css";
 
 export default function AddSkillPage() {
+    const router = useRouter();
+
   const [haveSkills, setHaveSkills] = useState([
     { name: "", experience: 0, projects: "" },
   ]);
@@ -23,37 +27,43 @@ export default function AddSkillPage() {
     setWantSkills([value]);
   };
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
+const handleSubmit = async (e: any) => {
+  e.preventDefault();
 
-    // ✅ Check duplicate in wantSkills (case insensitive + trim)
-    const formattedWant = wantSkills[0].toLowerCase().trim();
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/skills/add`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ haveSkills, wantSkills }),
+  });
 
-    if (
-      formattedWant &&
-      wantSkills.filter(
-        (skill) =>
-          skill.toLowerCase().trim() === formattedWant
-      ).length > 1
-    ) {
-      alert("Skill already added in Want section");
-      return;
-    }
+  const data = await res.json();
 
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/skills/add`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ haveSkills, wantSkills }),
-    });
+  if (!res.ok) {
+    alert(data.message || "Skill already added");
+    return;
+  }
 
-    // Reset form
-    setHaveSkills([{ name: "", experience: 0, projects: "" }]);
-    setWantSkills([""]);
-  };
+  // Reset form
+  setHaveSkills([{ name: "", experience: 0, projects: "" }]);
+  setWantSkills([""]);
+};
+
 
   return (
     <div className="page-container">
+         <button
+      type="button"
+      onClick={() => router.back()}
+      style={{
+        marginBottom: "15px",
+        padding: "6px 12px",
+        cursor: "pointer",
+      }}
+    >
+      ← Back
+    </button>
+    
       <h2>Add Skills</h2>
       <form className="form-box" onSubmit={handleSubmit}>
         <h3>I Have</h3>

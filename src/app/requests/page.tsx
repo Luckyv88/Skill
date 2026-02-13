@@ -2,9 +2,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import "./requests.css";
 
 export default function RequestsPage() {
+    const router = useRouter();
   const [requests, setRequests] = useState<any[]>([]);
   const [error, setError] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string>("");
@@ -102,6 +104,17 @@ export default function RequestsPage() {
 
   return (
     <div className="page-container">
+        <button
+    type="button"
+    onClick={() => router.back()}
+    style={{
+      marginBottom: "15px",
+      padding: "6px 12px",
+      cursor: "pointer",
+    }}
+  >
+    ← Back
+  </button>
       <h2>Your Requests</h2>
 
       {error && <p className="error">{error}</p>}

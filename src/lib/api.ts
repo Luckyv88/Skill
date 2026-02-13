@@ -2,7 +2,7 @@
 
 const API_URLS = [
   process.env.NEXT_PUBLIC_API_URL,
-  "http://localhost:4001",
+  // "http://localhost:4001",
 ].filter(Boolean); // remove undefined values
 
 export default async function apiRequest(
@@ -28,7 +28,6 @@ export default async function apiRequest(
 
       return await res.json();
     } catch (error) {
-      console.log(`API failed on ${baseUrl}, trying next...`);
       lastError = error;
     }
   }

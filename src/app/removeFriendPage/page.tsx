@@ -2,9 +2,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";  
 import "./removeFriend.css";
 
 export default function RemoveFriendPage() {
+    const router = useRouter();
   const [friends, setFriends] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>("");
 
@@ -44,7 +46,6 @@ export default function RemoveFriendPage() {
         return data;
       })
       .then((data) => {
-        console.log("Accepted API response:", data);
 
         if (Array.isArray(data)) {
           setFriends(data);
@@ -96,6 +97,17 @@ export default function RemoveFriendPage() {
 
   return (
     <div className="remove-friend-container">
+        <button
+    type="button"
+    onClick={() => router.back()}
+    style={{
+      marginBottom: "15px",
+      padding: "6px 12px",
+      cursor: "pointer",
+    }}
+  >
+    ← Back
+  </button>
       <h2>Friends List</h2>
 
       {friends.length === 0 && <p>No friends found</p>}

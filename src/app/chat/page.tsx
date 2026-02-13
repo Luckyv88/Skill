@@ -8,6 +8,7 @@ import ChatWindow from "@/src/components/chat/chatWndow";
 import "./chat.css";
 
 export default function ChatPage() {
+
   const [activeFriend, setActiveFriend] = useState<any>(null);
   const [userId, setUserId] = useState<string>("");
   const [incomingCall, setIncomingCall] = useState<any>(null); // <-- persistent incoming call
@@ -50,6 +51,7 @@ export default function ChatPage() {
 
   return (
     <div className="chat-container">
+      
       <FriendsList
         onSelect={setActiveFriend}
         incomingCall={incomingCall} // pass down for ringing indicator

@@ -13,7 +13,6 @@ export default function HomePage() {
     })
       .then(res => res.json())
       .then(data => {
-        console.log("All Skills:", data);
         setSkills(Array.isArray(data) ? data : []);
       })
       .catch(err => {

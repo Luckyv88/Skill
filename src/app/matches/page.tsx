@@ -2,28 +2,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import "./matches.css";
 
 export default function MatchesPage() {
+    const router = useRouter();
   const [matches, setMatches] = useState<any[]>([]);
   const [error, setError] = useState("");
+  const [sentRequests, setSentRequests] = useState<string[]>([]); // added
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/skills/matches`, {
-      credentials: "include", // include cookies for JWT
+      credentials: "include",
     })
       .then(res => {
         if (!res.ok) throw new Error("Unauthorized or server error");
         return res.json();
       })
       .then(data => {
-        console.log("API Response:", data); // check what backend returns
-        setMatches(data || []); // assign array safely
+        setMatches(data || []);
       })
       .catch(err => setError(err.message));
   }, []);
 
-  // Added send request function
+  //  Updated send request function
   const sendRequest = async (receiverId: string) => {
     try {
       const res = await fetch(
@@ -36,6 +38,9 @@ export default function MatchesPage() {
 
       if (!res.ok) throw new Error("Failed to send request");
 
+      // Instantly hide button
+      setSentRequests(prev => [...prev, receiverId]);
+
       alert("Request sent successfully!");
     } catch (err: any) {
       alert(err.message);
@@ -44,6 +49,17 @@ export default function MatchesPage() {
 
   return (
     <div className="page-container">
+        <button
+    type="button"
+    onClick={() => router.back()}
+    style={{
+      marginBottom: "15px",
+      padding: "6px 12px",
+      cursor: "pointer",
+    }}
+  >
+    ← Back
+  </button>
       <h2>Your Matches</h2>
 
       {error && <p className="error">{error}</p>}
@@ -54,17 +70,26 @@ export default function MatchesPage() {
         <div key={i} className="match-card">
           {m.name} - {m.user?.username}
 
-          {/* Added Request Button */}
-          <button
-            onClick={() => sendRequest(m.user?.id)}
-            style={{
-              marginLeft: "10px",
-              padding: "5px 10px",
-              cursor: "pointer",
-            }}
-          >
-            Send Request
-          </button>
+          {/* Button will disappear if request sent */}
+          {!sentRequests.includes(m.user?.id) && (
+            <button
+              onClick={() => sendRequest(m.user?.id)}
+              style={{
+                marginLeft: "10px",
+                padding: "5px 10px",
+                cursor: "pointer",
+              }}
+            >
+              Send Request
+            </button>
+          )}
+
+          {/* Optional status text */}
+          {sentRequests.includes(m.user?.id) && (
+            <span style={{ marginLeft: "10px", color: "orange" }}>
+              Request Sent
+            </span>
+          )}
         </div>
       ))}
     </div>

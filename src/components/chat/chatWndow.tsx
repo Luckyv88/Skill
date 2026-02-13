@@ -128,6 +128,7 @@ export default function ChatWindow({
 
   return (
     <div className="chat-window">
+
       <div className="chat-header">
         <h3>{friend.username}</h3>
         <div>
