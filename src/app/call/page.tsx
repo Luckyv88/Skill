@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable react-hooks/exhaustive-deps */
-export const dynamic = "force-dynamic";
+
 
 "use client";
-
+export const dynamic = "force-dynamic";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSocket } from "@/src/lib/socket";
