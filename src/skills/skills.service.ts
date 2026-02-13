@@ -15,6 +15,13 @@ export class SkillsService {
     @InjectRepository(User) private userRepo: Repository<User>,
   ) {}
 
+  async getMySkills(userId: string) {
+    return this.skillRepo.find({
+      where: { user: { id: userId } },
+      relations: { user: true },
+    });
+  }
+
   async addSkill(userId: string, dto: AddSkillDto) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new Error('User not found');
@@ -65,6 +72,27 @@ export class SkillsService {
   }
 
   async getAllSkills() {
-    return this.skillRepo.find({ relations: ['user'] });
+    return this.skillRepo.find({
+      relations: { user: true },
+    });
+  }
+
+  async deleteSkill(userId: string, skillId: string) {
+    const skill = await this.skillRepo.findOne({
+      where: { id: skillId },
+      relations: { user: true },
+    });
+
+    if (!skill) {
+      throw new Error('Skill not found');
+    }
+
+    if (!skill.user || skill.user.id !== userId) {
+      throw new Error('Unauthorized');
+    }
+
+    await this.skillRepo.delete(skillId);
+
+    return { message: 'Skill deleted successfully' };
   }
 }

@@ -1,8 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Controller, Post, Body, UseGuards, Req, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  Get,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { SkillsService } from './skills.service';
 import { AddSkillDto } from './dto/add-skill.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -24,11 +32,23 @@ export class SkillsController {
     const userId = req.user.userId;
     return this.skillsService.findMatches(userId);
   }
-
-  // src/skills/skills.controller.ts
   @UseGuards(AuthGuard('jwt'))
-  @Get('all')
-  async getAllSkills(@Req() req: any) {
+  @Get('my')
+  async getMySkills(@Req() req: any) {
+    const userId = req.user.userId;
+    return this.skillsService.getMySkills(userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('all-users')
+  async getAllSkills() {
     return this.skillsService.getAllSkills();
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':id')
+  async deleteSkill(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.skillsService.deleteSkill(userId, id);
   }
 }

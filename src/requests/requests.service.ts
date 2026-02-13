@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+// eslint-disable-next-line prettier/prettier
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SkillRequest } from '../entity/request.entity';
@@ -13,12 +14,29 @@ export class RequestsService {
 
   //  Send a request
   async send(senderId: string, receiverId: string) {
+    if (senderId === receiverId) {
+      throw new BadRequestException('You cannot send request to yourself');
+    }
+
     const sender = await this.userRepo.findOne({ where: { id: senderId } });
     const receiver = await this.userRepo.findOne({ where: { id: receiverId } });
 
-    if (!sender || !receiver) throw new NotFoundException('User not found');
+    if (!sender || !receiver) {
+      throw new NotFoundException('User not found');
+    }
 
-    // Use create() to make a proper entity instance
+    // SCHECK IF REQUEST ALREADY EXISTS (both directions)
+    const existingRequest = await this.reqRepo.findOne({
+      where: [
+        { sender: { id: senderId }, receiver: { id: receiverId } },
+        { sender: { id: receiverId }, receiver: { id: senderId } },
+      ],
+    });
+
+    if (existingRequest) {
+      throw new BadRequestException('Friend request already exists');
+    }
+
     const request = this.reqRepo.create({
       sender,
       receiver,
@@ -52,9 +70,8 @@ export class RequestsService {
     });
   }
 
-  // requests.service.ts (add this method only)
+  // Remove friend
   async removeFriend(userId: string, friendId: string) {
-    // Delete requests where user is sender or receiver with friend
     await this.reqRepo.delete([
       { sender: { id: userId }, receiver: { id: friendId } },
       { sender: { id: friendId }, receiver: { id: userId } },

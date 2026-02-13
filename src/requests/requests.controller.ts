@@ -23,6 +23,11 @@ export class RequestsController {
     return this.service.findAll(req.user.userId);
   }
 
+  @Get('accepted')
+  accepted(@Req() req: any) {
+    return this.service.accepted(req.user.userId);
+  }
+
   @Post('send/:id')
   send(@Req() req: any, @Param('id') id: string) {
     return this.service.send(req.user.userId, id);
