@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -14,11 +15,7 @@ import { SendMessageDto } from './dto/send-message.dto';
 
 @WebSocketGateway({
   cors: {
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://skill-swap-o8x6.onrender.com',
-    ], // Adjust as needed
+    origin: ['http://localhost:3000', 'https://presences-5a8n.onrender.com'], // same as your initSocket
     credentials: true,
   },
 })
@@ -26,26 +23,35 @@ export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
-  private onlineUsers: Map<string, string> = new Map();
-  private usersInCall: Set<string> = new Set();
+  private onlineUsers: Map<string, string> = new Map(); // userId -> socket.id
 
   constructor(private chatService: ChatService) {}
 
   handleDisconnect(client: Socket) {
-    for (const [userId, socketId] of this.onlineUsers.entries()) {
-      if (socketId === client.id) {
-        this.onlineUsers.delete(userId);
-      }
+    console.log('Socket disconnected:', client.id);
+    const disconnectedUser = [...this.onlineUsers.entries()].find(
+      ([_, socketId]) => socketId === client.id,
+    );
+    if (disconnectedUser) {
+      const [userId] = disconnectedUser;
+      this.onlineUsers.delete(userId);
+      this.server.emit('updateStatus', { userId, status: 'offline' });
     }
   }
 
-  @SubscribeMessage('register')
-  register(@MessageBody() userId: string, @ConnectedSocket() client: Socket) {
+  // ------------------- User Registration & Presence -------------------
+  @SubscribeMessage('join')
+  join(@MessageBody() userId: string, @ConnectedSocket() client: Socket) {
+    client.join(userId);
+    client.data.userId = userId;
     this.onlineUsers.set(userId, client.id);
-    client.data.userId = userId; //attach user to socket
-    console.log('User registered:', userId);
+    console.log(`User ${userId} joined room`);
+
+    // Broadcast online status
+    this.server.emit('updateStatus', { userId, status: 'online' });
   }
 
+  // ------------------- Chat Messaging -------------------
   @SubscribeMessage('sendMessage')
   async sendMessage(
     @MessageBody() body: SendMessageDto,
@@ -60,79 +66,52 @@ export class ChatGateway {
     if (receiverSocket) {
       this.server.to(receiverSocket).emit('receiveMessage', saved);
     }
-    console.log('Online users:', this.onlineUsers);
 
     this.server.to(client.id).emit('receiveMessage', saved);
+    console.log('Online users:', this.onlineUsers);
   }
 
-  //  Call user (video/audio signaling)
+  // ------------------- Call/Video Signaling -------------------
   @SubscribeMessage('callUser')
   callUser(
-    @MessageBody() data: { to: string; signal: any },
+    @MessageBody()
+    data: { to: string; signalData: any; from: string; callType: string },
     @ConnectedSocket() client: Socket,
   ) {
-    const callerId = client.data.userId;
-    const receiverSocket = this.onlineUsers.get(data.to);
-
-    // If receiver already in call
-    if (this.usersInCall.has(data.to)) {
-      this.server.to(client.id).emit('userBusy');
-      return;
-    }
-
-    if (receiverSocket) {
-      // mark both as in call
-      this.usersInCall.add(callerId);
-      this.usersInCall.add(data.to);
-
-      this.server.to(receiverSocket).emit('incomingCall', {
-        signal: data.signal,
-        from: callerId,
+    const toSocket = this.onlineUsers.get(data.to);
+    if (toSocket) {
+      this.server.to(toSocket).emit('incomingCall', {
+        from: data.from,
+        signalData: data.signalData,
+        callType: data.callType,
       });
+      this.server.emit('updateStatus', { userId: data.to, status: 'ringing' });
     }
   }
 
-  @SubscribeMessage('answerCall')
-  answerCall(
-    @MessageBody() data: { to: string; signal: any },
+  @SubscribeMessage('acceptCall')
+  acceptCall(
+    @MessageBody() data: { to: string; signalData: any },
     @ConnectedSocket() client: Socket,
   ) {
-    const callerSocket = this.onlineUsers.get(data.to);
-
-    if (callerSocket) {
-      this.server.to(callerSocket).emit('callAccepted', {
-        signal: data.signal,
-        from: client.data.userId,
-      });
+    const toSocket = this.onlineUsers.get(data.to);
+    if (toSocket) {
+      this.server
+        .to(toSocket)
+        .emit('callAccepted', { signalData: data.signalData });
+      this.server.emit('updateStatus', { userId: data.to, status: 'online' });
     }
   }
 
-  @SubscribeMessage('rejectCall')
-  rejectCall(
-    @MessageBody() data: { to: string },
-    @ConnectedSocket() client: Socket,
-  ) {
-    const callerSocket = this.onlineUsers.get(data.to);
-
-    if (callerSocket) {
-      this.server.to(callerSocket).emit('callRejected');
-    }
-
-    this.usersInCall.delete(data.to);
-    this.usersInCall.delete(client.data.userId);
-  }
   @SubscribeMessage('endCall')
   endCall(
     @MessageBody() data: { to: string },
     @ConnectedSocket() client: Socket,
   ) {
-    const otherSocket = this.onlineUsers.get(data.to);
-
-    if (otherSocket) {
-      this.server.to(otherSocket).emit('callEnded');
+    const toSocket = this.onlineUsers.get(data.to);
+    if (toSocket) {
+      this.server.to(toSocket).emit('callEnded');
+      this.server.emit('updateStatus', { userId: data.to, status: 'online' });
     }
-
-    this.usersInCall.delete(data.to);
-    this.usersInCall.delete(client.data.userId);
   }
 }
