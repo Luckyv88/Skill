@@ -2,7 +2,8 @@
 
 const API_URLS = [
   process.env.NEXT_PUBLIC_API_URL,
-  // "http://localhost:4001",
+  //changed
+  "http://localhost:4001",
 ].filter(Boolean); // remove undefined values
 
 export default async function apiRequest(

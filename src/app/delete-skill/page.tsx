@@ -2,12 +2,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import "./delete-skill.css";
 
 export default function DeleteSkillPage() {
-    const router = useRouter();
-
   const [skills, setSkills] = useState<any[]>([]);
   const [error, setError] = useState("");
 
@@ -52,17 +49,6 @@ export default function DeleteSkillPage() {
 
   return (
     <div className="page-container">
-        <button
-    type="button"
-    onClick={() => router.back()}
-    style={{
-      marginBottom: "15px",
-      padding: "6px 12px",
-      cursor: "pointer",
-    }}
-  >
-    ← Back
-  </button>
       <h2>Delete Skills</h2>
 
       {error && <p className="error">{error}</p>}

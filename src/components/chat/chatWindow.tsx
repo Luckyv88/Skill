@@ -12,12 +12,13 @@ export default function ChatWindow({
   userId,
   incomingCall,
   setIncomingCall,
+  onlineStatus,
 }: any) {
   const [messages, setMessages] = useState<any[]>([]);
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  // Fetch chat history when friend changes
+  // ------------------- Fetch chat history -------------------
   useEffect(() => {
     if (!friend?.id) return;
 
@@ -25,10 +26,11 @@ export default function ChatWindow({
       credentials: "include",
     })
       .then((res) => res.json())
-      .then((data) => setMessages(data));
+      .then((data) => setMessages(Array.isArray(data) ? data : []))
+      .catch(() => setMessages([]));
   }, [friend]);
 
-  // Listen for live messages & calls
+  // ------------------- Listen for messages & call events -------------------
   useEffect(() => {
     if (!friend?.id) return;
 
@@ -40,43 +42,35 @@ export default function ChatWindow({
       }
     };
 
-    const handleUserBusy = () => {
-      alert("User is Busy");
-    };
-
-    const handleCallRejected = () => {
-      alert("Call Rejected");
-    };
-
+    const handleCallRejected = () => alert("Call Rejected");
+    const handleUserBusy = () => alert("User is Busy");
+    const handleCallEnded = () => setIncomingCall(null);
     const handleCallAccepted = (data: any) => {
+      // Navigate to call page as caller
       router.push(
-        `/call?type=${data.signal?.type || "video"}&friendId=${friend.id}&mode=caller`
+        `/call?type=${data.signalData?.callType || "video"}&friendId=${friend.id}&userId=${userId}&mode=caller`
       );
-    };
-
-    const handleCallEnded = () => {
-      alert("Call Ended");
+      setIncomingCall(null);
     };
 
     socket.on("receiveMessage", handleMessage);
-    socket.on("userBusy", handleUserBusy);
     socket.on("callRejected", handleCallRejected);
+    socket.on("userBusy", handleUserBusy);
     socket.on("callAccepted", handleCallAccepted);
     socket.on("callEnded", handleCallEnded);
 
     return () => {
       socket.off("receiveMessage", handleMessage);
-      socket.off("userBusy", handleUserBusy);
       socket.off("callRejected", handleCallRejected);
+      socket.off("userBusy", handleUserBusy);
       socket.off("callAccepted", handleCallAccepted);
       socket.off("callEnded", handleCallEnded);
     };
   }, [friend]);
 
-  // Send message
+  // ------------------- Send Message -------------------
   const sendMessage = () => {
     if (!message.trim()) return;
-
     const socket = getSocket();
 
     socket.emit("sendMessage", {
@@ -87,34 +81,39 @@ export default function ChatWindow({
     setMessage("");
   };
 
-  // Call user
+  // ------------------- Call User -------------------
   const callUser = (type: "video" | "audio") => {
+    if (!friend?.id || !userId) return;
     const socket = getSocket();
 
     socket.emit("callUser", {
       to: friend.id,
-      signal: { type },
+      from: userId,
+      signalData: { callType: type }, // match ChatGateway
+      callType: type,
     });
   };
 
-  // Accept call
+  // ------------------- Accept Call -------------------
   const acceptCall = () => {
+    if (!incomingCall) return;
     const socket = getSocket();
 
-    socket.emit("answerCall", {
+    socket.emit("acceptCall", {
       to: incomingCall.from,
-      signal: { type: incomingCall.signal.type },
+      signalData: incomingCall.signalData,
     });
 
     setIncomingCall(null);
 
     router.push(
-      `/call?type=${incomingCall.signal.type}&friendId=${incomingCall.from}&mode=receiver`
+      `/call?type=${incomingCall.signalData.callType}&friendId=${incomingCall.from}&userId=${userId}&mode=receiver`
     );
   };
 
-  // Reject call
+  // ------------------- Reject Call -------------------
   const rejectCall = () => {
+    if (!incomingCall) return;
     const socket = getSocket();
 
     socket.emit("rejectCall", {
@@ -124,11 +123,8 @@ export default function ChatWindow({
     setIncomingCall(null);
   };
 
- 
-
   return (
     <div className="chat-window">
-
       <div className="chat-header">
         <h3>{friend.username}</h3>
         <div>
@@ -138,19 +134,20 @@ export default function ChatWindow({
       </div>
 
       <div className="chat-messages">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={msg.sender.id === userId ? "my-message" : "friend-message"}
-          >
-            {msg.message}
-          </div>
-        ))}
+        {Array.isArray(messages) &&
+          messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={msg.sender.id === userId ? "my-message" : "friend-message"}
+            >
+              {msg.message}
+            </div>
+          ))}
       </div>
 
       {incomingCall && incomingCall.from === friend.id && (
         <div className="call-popup">
-          <p>Incoming {incomingCall.signal.type} Call</p>
+          <p>Incoming {incomingCall.signalData.callType} Call</p>
           <button onClick={acceptCall}>Accept</button>
           <button onClick={rejectCall}>Reject</button>
         </div>
