@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -15,7 +16,7 @@ import { SendMessageDto } from './dto/send-message.dto';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:3000', 'https://skill-swap-o8x6.onrender.com'], // same as your initSocket
+    origin: ['https://skill-swap-o8x6.onrender.com'], // same as your initSocket
     credentials: true,
   },
 })

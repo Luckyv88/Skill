@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Injectable,
   UnauthorizedException,
@@ -14,19 +15,27 @@ import { loginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectRepository(User) private userRepo: Repository<User>) {}
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+  ) {}
 
   async signup(data: SignUpDto) {
+    // Optimized existence check (select only id)
     const exists = await this.userRepo.findOne({
       where: [
         { email: data.email },
         { username: data.username },
         { phone: data.phone },
       ],
+      select: ['id'], // Only fetch id
     });
 
-    if (exists) throw new BadRequestException('User already exists');
+    if (exists) {
+      throw new BadRequestException('User already exists');
+    }
 
+    // Hash only once
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const user = this.userRepo.create({
@@ -35,28 +44,36 @@ export class AuthService {
       profilepic: generateAvatar(data.username),
     });
 
-    await this.userRepo.save(user);
+    const savedUser = await this.userRepo.save(user);
 
-    return this.generateToken(user.id);
+    return this.generateToken(savedUser.id);
   }
 
   async login(data: loginDto) {
-    const user = await this.userRepo.findOne({ where: { email: data.email } });
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    //Fetch only required fields
+    const user = await this.userRepo.findOne({
+      where: { email: data.email },
+      select: ['id', 'password'],
+    });
 
-    const match = await bcrypt.compare(data.password, user.password);
-    if (!match) throw new UnauthorizedException('Invalid credentials');
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isMatch = await bcrypt.compare(data.password, user.password);
+
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
     return this.generateToken(user.id);
   }
 
-  private generateToken(userId: string) {
-    // Use 'sub' standard claim
-    const token = jwt.sign(
-      { sub: userId }, // changed from { userId }
+  private generateToken(userId: string): string {
+    return jwt.sign(
+      { sub: userId },
       process.env.JWT_SECRET_KEY as string,
       { expiresIn: '7d' },
     );
-    return token;
   }
 }

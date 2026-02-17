@@ -14,7 +14,7 @@ export class ChatService {
     @InjectRepository(SkillRequest) private reqRepo: Repository<SkillRequest>,
   ) {}
 
-  // 🔒 Send message (ONLY if accepted)
+  //Send message (ONLY if accepted)
   async sendMessage(senderId: string, dto: SendMessageDto) {
     const sender = await this.userRepo.findOne({ where: { id: senderId } });
     const receiver = await this.userRepo.findOne({
@@ -51,7 +51,7 @@ export class ChatService {
     return this.chatRepo.save(chat);
   }
 
-  // 🔒 Get chat history (ONLY if accepted)
+  //Get chat history (ONLY if accepted)
   async getChatHistory(userId: string, friendId: string) {
     const accepted = await this.reqRepo.findOne({
       where: [
@@ -80,7 +80,7 @@ export class ChatService {
     });
   }
 
-  // ✅ Friends list (accepted only)
+  // Friends list (accepted only)
   async getFriendsList(userId: string) {
     const acceptedRequests = await this.reqRepo.find({
       where: [
