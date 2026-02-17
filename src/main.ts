@@ -8,7 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: ['https://skill-swap-o8x6.onrender.com'],
+    origin: ['https://skill-swap-o8x6.onrender.com', 'http://localhost:3000'], // allow both frontend and backend origins
     credentials: true,
   });
 
