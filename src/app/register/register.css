@@ -1,29 +1,39 @@
+/* -------------------- Register Container -------------------- */
 .register-container {
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   background: #e6f0fa; /* same sky background */
+  padding: 20px; /* for very small screens */
+  box-sizing: border-box;
 }
 
+/* -------------------- Register Card -------------------- */
 .register-card {
-  background: #ffffff; /* white card like login */
+  background: #ffffff;
   padding: 40px;
-  width: 400px;
+  width: 100%;
+  max-width: 400px; /* original card width */
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   border: 1px solid #d9e3f0;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  transition: all 0.2s ease-in-out;
 }
 
+/* Heading */
 .register-card h2 {
   text-align: center;
   margin-bottom: 20px;
-  color: #2c3e50; /* soft dark blue */
+  color: #2c3e50;
   font-weight: 600;
+  font-size: 1.5rem;
 }
 
+/* Inputs */
 .register-card input {
   margin-bottom: 15px;
   padding: 12px 14px;
@@ -32,6 +42,8 @@
   font-size: 14px;
   background-color: #ffffff;
   transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .register-card input:focus {
@@ -40,16 +52,18 @@
   box-shadow: 0 0 6px rgba(102, 192, 255, 0.4);
 }
 
+/* Buttons */
 .register-card button {
   padding: 12px;
   border: none;
   border-radius: 25px;
-  background: #66c0ff; /* same blue as login */
+  background: #66c0ff;
   color: white;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.25s ease;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
 }
 
 .register-card button:hover {
@@ -58,12 +72,15 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
+/* Error message */
 .error {
   color: #d9534f;
   font-size: 13px;
   text-align: center;
+  margin-bottom: 10px;
 }
 
+/* Redirect section */
 .redirect {
   margin-top: 15px;
   text-align: center;
@@ -80,4 +97,53 @@
 
 .redirect span:hover {
   text-decoration: underline;
+}
+
+/* -------------------- Responsive Tweaks -------------------- */
+@media screen and (max-width: 768px) {
+  .register-card {
+    padding: 30px;
+  }
+
+  .register-card h2 {
+    font-size: 1.3rem;
+  }
+
+  .register-card input {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .register-card button {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .redirect {
+    font-size: 13px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .register-card {
+    padding: 20px;
+  }
+
+  .register-card h2 {
+    font-size: 1.2rem;
+  }
+
+  .register-card input {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .register-card button {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .redirect {
+    font-size: 12px;
+  }
 }

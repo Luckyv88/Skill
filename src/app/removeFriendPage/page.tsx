@@ -135,4 +135,4 @@ export default function RemoveFriendPage() {
       </ul>
     </div>
   );
-}
+} 

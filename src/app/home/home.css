@@ -1,24 +1,29 @@
+/* -------------------- Page Container -------------------- */
 .page-container {
   padding: 40px;
   background: #e6f0fa; 
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
-
+/* Headings */
 h2 {
   margin-bottom: 25px;
   color: #2c3e50; 
   font-weight: 600;
+  font-size: 1.5rem;
 }
 
-
+/* Card Grid */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-
+/* Individual Skill Card */
 .skill-card {
   background: #dbe9f7; 
   padding: 20px;
@@ -27,11 +32,67 @@ h2 {
   transition: all 0.25s ease;
   border: 1px solid #c2d4eb;
   cursor: pointer;
+  box-sizing: border-box;
 }
-
 
 .skill-card:hover {
   transform: translateY(-4px);
   background: #cfe0f5; 
   box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* -------------------- Responsive Tweaks -------------------- */
+@media screen and (max-width: 1024px) {
+  .page-container {
+    padding: 30px;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+  }
+
+  .card-grid {
+    gap: 18px;
+  }
+
+  .skill-card {
+    padding: 18px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .page-container {
+    padding: 25px;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  .card-grid {
+    gap: 15px;
+  }
+
+  .skill-card {
+    padding: 16px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .page-container {
+    padding: 20px;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr; /* single column on mobile */
+    gap: 12px;
+  }
+
+  .skill-card {
+    padding: 14px;
+  }
 }

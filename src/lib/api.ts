@@ -34,4 +34,4 @@ export default async function apiRequest(
   }
 
   throw lastError;
-}
+} 

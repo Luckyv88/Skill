@@ -1,20 +1,25 @@
+/* Page container */
 .page-container {
   padding: 30px;
   min-height: 100vh;
   background-color: #f4f6f9;
+  box-sizing: border-box;
 }
 
+/* Headings */
 .page-container h2 {
   margin-bottom: 20px;
   font-size: 24px;
   font-weight: 600;
 }
 
+/* Error message */
 .error {
   color: red;
   margin-bottom: 15px;
 }
 
+/* Request card */
 .request-card {
   background: white;
   padding: 20px;
@@ -22,6 +27,9 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: 0.2s ease;
+  width: 100%;
+  max-width: 600px; /* cards won’t exceed 600px */
+  box-sizing: border-box;
 }
 
 .request-card:hover {
@@ -33,6 +41,7 @@
   font-size: 14px;
 }
 
+/* Buttons inside cards */
 .request-card button {
   background-color: #4caf50;
   color: white;
@@ -42,6 +51,7 @@
   font-size: 13px;
   cursor: pointer;
   transition: 0.2s ease;
+  margin-right: 8px;
 }
 
 .request-card button:hover {
@@ -50,4 +60,54 @@
 
 .request-card button:last-child {
   background-color: #f44336;
+}
+
+/* -------------------- Responsive Tweaks -------------------- */
+@media screen and (max-width: 768px) {
+  .page-container {
+    padding: 20px;
+  }
+
+  .page-container h2 {
+    font-size: 20px;
+  }
+
+  .request-card {
+    padding: 15px;
+  }
+
+  .request-card p {
+    font-size: 13px;
+  }
+
+  .request-card button {
+    padding: 5px 10px;
+    font-size: 12px;
+    margin-bottom: 5px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .page-container {
+    padding: 15px;
+  }
+
+  .page-container h2 {
+    font-size: 18px;
+  }
+
+  .request-card {
+    padding: 12px;
+  }
+
+  .request-card p {
+    font-size: 12px;
+  }
+
+  .request-card button {
+    padding: 5px 8px;
+    font-size: 11px;
+    width: 100%;
+    margin-bottom: 5px;
+  }
 }

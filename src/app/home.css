@@ -1,45 +1,58 @@
+/* Full height home container */
 .home-container {
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #e6f0fa; 
+  background: #e6f0fa;
+  padding: 20px; /* add padding for very small screens */
+  box-sizing: border-box;
+}
 
+/* Home card styling */
 .home-card {
-  background: #dbe9f7; 
-  width: 500px;
+  background: #dbe9f7;
+  width: 100%;
+  max-width: 500px; /* original design */
   padding: 50px;
   text-align: center;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   border: 1px solid #c2d4eb;
+  box-sizing: border-box;
+  transition: all 0.2s ease-in-out; /* smooth resizing */
 }
 
+/* Headings */
 .home-card h1 {
   font-size: 32px;
   margin-bottom: 20px;
-  color: #2c3e50; 
+  color: #2c3e50;
   font-weight: 600;
 }
 
+/* Paragraphs */
 .home-card p {
   font-size: 15px;
   margin-bottom: 30px;
   line-height: 1.6;
-  color: #4a5a6a; 
+  color: #4a5a6a;
 }
 
+/* Buttons group */
 .button-group {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap; /* wrap on small screens */
   gap: 20px;
 }
 
+/* Buttons styling */
 .button-group button {
   padding: 12px 25px;
   border: none;
   border-radius: 25px;
-  background: #66c0ff; 
+  background: #66c0ff;
   color: white;
   font-weight: 500;
   cursor: pointer;
@@ -51,4 +64,54 @@
   background: #3399ff;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* --- Responsive tweaks --- */
+
+/* Medium screens */
+@media screen and (max-width: 768px) {
+  .home-card {
+    padding: 40px;
+  }
+
+  .home-card h1 {
+    font-size: 28px;
+  }
+
+  .home-card p {
+    font-size: 14px;
+  }
+
+  .button-group button {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+/* Small screens */
+@media screen and (max-width: 480px) {
+  .home-card {
+    padding: 30px 20px;
+    width: 100%;
+  }
+
+  .home-card h1 {
+    font-size: 24px;
+  }
+
+  .home-card p {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .button-group button {
+    width: 100%;
+    padding: 10px 0;
+    font-size: 14px;
+  }
 }

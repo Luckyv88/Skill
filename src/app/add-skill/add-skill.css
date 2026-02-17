@@ -1,10 +1,11 @@
-/* Scope everything only to Add Skill page */
+/* -------------------- Add Skill Page Container -------------------- */
 .page-container {
   min-height: 100vh;
   padding: 40px 20px;
+  box-sizing: border-box;
 }
 
-/* Only target form inside this page */
+/* -------------------- Form Box -------------------- */
 .page-container .form-box {
   width: 100%;
   max-width: 500px;
@@ -16,9 +17,10 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+  box-sizing: border-box;
 }
 
-/* Headings */
+/* Form Headings */
 .page-container .form-box h3 {
   margin-top: 10px;
   margin-bottom: 5px;
@@ -27,7 +29,7 @@
   font-weight: 600;
 }
 
-/* Inputs */
+/* Form Inputs */
 .page-container .form-box input {
   width: 100%;
   padding: 10px 12px;
@@ -37,6 +39,8 @@
   color: #000;
   background: #fff;
   outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .page-container .form-box input:focus {
@@ -52,13 +56,14 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .page-container .form-box button[type="submit"]:hover {
   background: #222;
 }
 
-/* Back button only on this page */
+/* Back Button */
 .page-container > button {
   margin-bottom: 15px;
   padding: 6px 12px;
@@ -66,4 +71,94 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* -------------------- Responsive Tweaks -------------------- */
+@media screen and (max-width: 1024px) {
+  .page-container {
+    padding: 35px 20px;
+  }
+
+  .page-container .form-box {
+    padding: 25px;
+  }
+
+  .page-container .form-box h3 {
+    font-size: 15px;
+  }
+
+  .page-container .form-box input {
+    padding: 9px 11px;
+    font-size: 13px;
+  }
+
+  .page-container .form-box button[type="submit"] {
+    padding: 9px;
+    font-size: 14px;
+  }
+
+  .page-container > button {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .page-container {
+    padding: 25px 15px;
+  }
+
+  .page-container .form-box {
+    padding: 20px;
+  }
+
+  .page-container .form-box h3 {
+    font-size: 14px;
+  }
+
+  .page-container .form-box input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .page-container .form-box button[type="submit"] {
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .page-container > button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .page-container {
+    padding: 20px 10px;
+  }
+
+  .page-container .form-box {
+    padding: 15px;
+  }
+
+  .page-container .form-box h3 {
+    font-size: 13px;
+  }
+
+  .page-container .form-box input {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  .page-container .form-box button[type="submit"] {
+    padding: 7px;
+    font-size: 12px;
+  }
+
+  .page-container > button {
+    padding: 5px 8px;
+    font-size: 11px;
+    width: 100%;
+  }
 }
