@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import Redis from 'ioredis';
 import { Skill } from '../entity/skill.entity';
 import { User } from '../entity/user.entity';
 import { AddSkillDto } from './dto/add-skill.dto';
@@ -13,20 +14,31 @@ export class SkillsService {
   constructor(
     @InjectRepository(Skill) private skillRepo: Repository<Skill>,
     @InjectRepository(User) private userRepo: Repository<User>,
+    @Inject('REDIS_CLIENT') private redis: Redis, // Added
   ) {}
 
   async getMySkills(userId: string) {
-    return this.skillRepo.find({
+    const cacheKey = `skills:my:${userId}`;
+
+    const cached = await this.redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    const skills = await this.skillRepo.find({
       where: { user: { id: userId } },
       relations: { user: true },
     });
+
+    await this.redis.set(cacheKey, JSON.stringify(skills), 'EX', 120);
+
+    return skills;
   }
 
   async addSkill(userId: string, dto: AddSkillDto) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new Error('User not found');
 
-    // Check duplicate WANT skill (case-insensitive + trimmed)
     const formattedWant = (dto.wantSkills?.[0] || '')
       .toLowerCase()
       .replace(/\s+/g, '');
@@ -51,11 +63,24 @@ export class SkillsService {
       user,
     });
 
-    return this.skillRepo.save(skill);
+    const saved = await this.skillRepo.save(skill);
+
+    //  Clear related cache
+    await this.redis.del(`skills:my:${userId}`);
+    await this.redis.del(`skills:all`);
+    await this.redis.del(`skills:matches:${userId}`);
+
+    return saved;
   }
 
   async findMatches(userId: string) {
-    // Fetch my skills
+    const cacheKey = `skills:matches:${userId}`;
+
+    const cached = await this.redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
     const mySkills = await this.skillRepo.find({
       where: { user: { id: userId } },
       relations: ['user'],
@@ -70,30 +95,40 @@ export class SkillsService {
 
     if (want.length === 0) return [];
 
-    // Fetch all other users' skills
     const allSkills = await this.skillRepo.find({ relations: ['user'] });
 
-    // Filter matches
     const matches = allSkills.filter((s) => {
-      if (s.user.id === userId) return false; // exclude self
+      if (s.user.id === userId) return false;
 
-      const have = s.haveSkills.map((h) =>
+      const have = s.haveSkills.map((h: any) =>
         typeof h === 'string'
-          ? (h as string).toLowerCase().replace(/\s+/g, '')
-          : (h as any).name.toLowerCase().replace(/\s+/g, ''),
+          ? h.toLowerCase().replace(/\s+/g, '')
+          : h.name.toLowerCase().replace(/\s+/g, ''),
       );
 
-      // Check if any of my wants exist in their haveSkills
       return want.some((w) => have.includes(w));
     });
+
+    await this.redis.set(cacheKey, JSON.stringify(matches), 'EX', 60);
 
     return matches;
   }
 
   async getAllSkills() {
-    return this.skillRepo.find({
+    const cacheKey = `skills:all`;
+
+    const cached = await this.redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    const skills = await this.skillRepo.find({
       relations: { user: true },
     });
+
+    await this.redis.set(cacheKey, JSON.stringify(skills), 'EX', 120);
+
+    return skills;
   }
 
   async deleteSkill(userId: string, skillId: string) {
@@ -111,6 +146,11 @@ export class SkillsService {
     }
 
     await this.skillRepo.delete(skillId);
+
+    // Clear cache
+    await this.redis.del(`skills:my:${userId}`);
+    await this.redis.del(`skills:all`);
+    await this.redis.del(`skills:matches:${userId}`);
 
     return { message: 'Skill deleted successfully' };
   }
