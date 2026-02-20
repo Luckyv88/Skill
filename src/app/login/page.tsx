@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import apiRequest from "@/lib/api"; // Make sure this is your axios or fetch wrapper
+import apiRequest from "@/lib/api";
 import "./login.css";
 
 export default function LoginPage() {
@@ -11,34 +11,44 @@ export default function LoginPage() {
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Update form state on input change
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  // Handle input change (memoized)
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setForm((prev) => ({ ...prev, [name]: value }));
+    },
+    []
+  );
 
-  // Handle form submission
+  // Handle submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (loading) return; // prevent double submit
     setError("");
+    setLoading(true);
 
     try {
-      // Make POST request to login endpoint
-      const res = await apiRequest({
+      const { data } = await apiRequest({
         url: "/auth/login",
         method: "POST",
         data: form,
       });
 
-      // Save JWT token in localStorage if backend returns it
-      if (res.data?.token) {
-        localStorage.setItem("token", res.data.token);
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
       }
 
-      alert("Login successful!");
-      router.push("/home"); // Redirect to home page
+      router.replace("/home"); // better than push for login
     } catch (err: any) {
-      setError(err?.response?.data?.message || err.message || "Login failed");
+      setError(
+        err?.response?.data?.message ||
+          "Invalid email or password. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,6 +66,7 @@ export default function LoginPage() {
           value={form.email}
           onChange={handleChange}
           required
+          autoComplete="email"
         />
 
         <input
@@ -65,9 +76,12 @@ export default function LoginPage() {
           value={form.password}
           onChange={handleChange}
           required
+          autoComplete="current-password"
         />
 
-        <button type="submit">Login</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
 
         <p className="redirect">
           Don’t have an account?{" "}
