@@ -6,13 +6,9 @@ import { ChatMessage } from '../entity/chat.entity';
 import { User } from '../entity/user.entity';
 import { SkillRequest } from '../entity/request.entity';
 import { ChatGateway } from './chat.gateway';
-import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ChatMessage, User, SkillRequest]),
-    RedisModule,
-  ],
+  imports: [TypeOrmModule.forFeature([ChatMessage, User, SkillRequest])],
   providers: [ChatService, ChatGateway],
   controllers: [ChatController],
 })

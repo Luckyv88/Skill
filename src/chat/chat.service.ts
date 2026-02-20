@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import Redis from 'ioredis';
 import { ChatMessage } from '../entity/chat.entity';
 import { User } from '../entity/user.entity';
 import { SendMessageDto } from './dto/send-message.dto';
@@ -14,9 +12,9 @@ export class ChatService {
     @InjectRepository(ChatMessage) private chatRepo: Repository<ChatMessage>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(SkillRequest) private reqRepo: Repository<SkillRequest>,
-    @Inject('REDIS_CLIENT') private redis: Redis,
   ) {}
 
+  //Send message (ONLY if accepted)
   async sendMessage(senderId: string, dto: SendMessageDto) {
     const sender = await this.userRepo.findOne({ where: { id: senderId } });
     const receiver = await this.userRepo.findOne({
@@ -50,23 +48,11 @@ export class ChatService {
       fileUrl: dto.fileUrl,
     });
 
-    const saved = await this.chatRepo.save(chat);
-
-    // 🔥 Clear Chat Cache After New Message
-    await this.redis.del(`chat:${senderId}:${dto.receiverId}`);
-    await this.redis.del(`chat:${dto.receiverId}:${senderId}`);
-
-    return saved;
+    return this.chatRepo.save(chat);
   }
 
+  //Get chat history (ONLY if accepted)
   async getChatHistory(userId: string, friendId: string) {
-    const cacheKey = `chat:${userId}:${friendId}`;
-
-    const cached = await this.redis.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
-
     const accepted = await this.reqRepo.findOne({
       where: [
         {
@@ -84,7 +70,7 @@ export class ChatService {
 
     if (!accepted) throw new Error('You are not connected with this user');
 
-    const messages = await this.chatRepo.find({
+    return this.chatRepo.find({
       where: [
         { sender: { id: userId }, receiver: { id: friendId } },
         { sender: { id: friendId }, receiver: { id: userId } },
@@ -92,20 +78,10 @@ export class ChatService {
       order: { createdAt: 'ASC' },
       relations: ['sender', 'receiver'],
     });
-
-    await this.redis.set(cacheKey, JSON.stringify(messages), 'EX', 60);
-
-    return messages;
   }
 
+  // Friends list (accepted only)
   async getFriendsList(userId: string) {
-    const cacheKey = `friends:${userId}`;
-
-    const cached = await this.redis.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
-
     const acceptedRequests = await this.reqRepo.find({
       where: [
         { sender: { id: userId }, status: 'ACCEPTED' },
@@ -121,8 +97,6 @@ export class ChatService {
     const unique = friends.filter(
       (v, i, a) => a.findIndex((u) => u.id === v.id) === i,
     );
-
-    await this.redis.set(cacheKey, JSON.stringify(unique), 'EX', 120);
 
     return unique;
   }

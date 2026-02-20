@@ -89,9 +89,8 @@ export class AuthService {
     }
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
-    console.time('bcrypt');
+
     const match = await bcrypt.compare(data.password, user.password);
-    console.timeEnd('bcrypt');
     if (!match) throw new UnauthorizedException('Invalid credentials');
 
     return this.generateToken(user.id);
