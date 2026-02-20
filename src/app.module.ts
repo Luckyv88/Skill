@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { SkillsModule } from './skills/skills.module';
 import { RequestsModule } from './requests/requests.module';
 import { ChatModule } from './chat/chat.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -21,7 +22,6 @@ import { ChatModule } from './chat/chat.module';
         rejectUnauthorized: false,
       },
     }),
-
     AuthModule,
 
     SkillsModule,
@@ -29,6 +29,8 @@ import { ChatModule } from './chat/chat.module';
     RequestsModule,
 
     ChatModule,
+
+    RedisModule,
   ],
 })
 export class AppModule {}
